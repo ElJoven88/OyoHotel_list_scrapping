@@ -17,6 +17,7 @@ library(dplyr)
 library(knitr)
 ```
 
+the website we are gona scrap from is https://www.oyorooms.com/
 
 ```{r function to extract the details , warning=FALSE, message=FALSE}
 hotels_list =function(locations,Number_of_tab){
