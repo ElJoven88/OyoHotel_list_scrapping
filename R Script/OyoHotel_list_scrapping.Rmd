@@ -1,0 +1,92 @@
+---
+title: "Extracting Oyo hotel details"
+subtitle: "webscrapping using 'rvest'"
+author: "Mayariwala Mohammad Ahmed"
+date: "2022-08-22"
+output: html_notebook
+---
+
+```{r installing packages, warning=FALSE,message=FALSE}
+install.packages("rvest")
+install.packages("dplyr")
+```
+
+```{r loading library, warning=FALSE,message=FALSE}
+library(rvest)
+library(dplyr)
+library(knitr)
+```
+
+
+```{r function to extract the details , warning=FALSE, message=FALSE}
+hotels_list =function(locations,Number_of_tab){
+  
+  amenitiess <- function(post_link){
+    
+    page <-read_html(post_link)
+    
+    amenitie <- page %>% 
+      html_nodes(".c-12w6zty") %>% 
+      html_text() %>%
+      paste(collapse = ",") 
+    return(amenitie)
+  }
+  for(page_result in seq(from = 1, to = Number_of_tab, by = 1)){
+    URLs <- paste("https://www.oyorooms.com/hotels-in-",locations,"/?", page_result, "&sort=guest_ratings&sortOrder=", sep = "")
+    page <- read_html(URLs)
+  
+      name <- page %>% 
+      html_nodes(".listingHotelDescription__hotelName") %>% 
+      html_text()
+    
+    rating <- page %>% 
+      html_nodes(".hotelRating__rating--clickable > span:nth-child(1)") %>% 
+      html_text()
+    
+    Address <- page %>% 
+      html_nodes(".u-line--clamp-2") %>% 
+      html_text()
+    
+    room_price <- page %>% 
+      html_nodes(".listingPrice__finalPrice") %>%
+      html_text()
+    
+    post_link <- page %>% 
+      html_nodes(".listingHotelDescription") %>% 
+      html_attr("name") %>% 
+      gsub('HotelListCard-','https://www.oyorooms.com/',.) %>% 
+      paste("/", sep = "")
+    
+    Amenitie <- sapply(post_link, FUN = amenitiess,USE.NAMES = FALSE)
+    
+    hotels <- rbind(data.frame(name, rating, room_price, Amenitie, Address, post_link, stringsAsFactors = FALSE))
+  }
+  
+  hotels
+ }
+
+```
+
+```{r take user inputs and run function , warning=FALSE, message=FALSE}
+locations <- readline(prompt = "Enter location: ")
+No_tabs <- readline(prompt = "Number of tab page has:  ")
+
+returns <- hotels_list(locations, No_tabs)
+```
+
+```{r}
+knitr::kable(returns)
+```
+
+
+voia ! we can see that all the addresses are from *mumbai* and can cross check from website
+it seems the script is working right 
+its optional to convert the dataframe into *CSV*. to do that you can run this chuck 
+```{r convert the datafram in csv ,message=FALSE, warning=FALSE}
+filename <- paste(locations,"_HotelList.csv", sep = "")
+write.csv(returns, filename)
+```
+
+
+ 
+
